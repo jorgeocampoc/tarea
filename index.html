@@ -96,8 +96,8 @@
                 const supabase = createClient('https://vmjkvqgvtjauoibbcexr.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZtamt2cWd2dGphdW9pYmJjZXhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjU5ODE3OTAsImV4cCI6MjA0MTU1Nzc5MH0.WL8TLQGqxCLGZLSP4mYRpdC_VGoyO8Z02EXo2Rxn02M')
 
                 const mostrar = ref('form');
-                const username = ref('jorge@gmail.com');
-                const password = ref('123456');
+                const username = ref('hfkdjaslhfkjldsabnfkjldbfljkdbsakljfdas2@fdklñafnmlñkdasnmflkdsña.com');
+                const password = ref('fnmoidsanfoiudsanfodnsofndsiopanfjodsapnfijodsanfiodasnfiodasnfoidas');
                 const user = ref({});
                 const usuarios = ref([]);
                 const receptor = ref({}); // con quien
@@ -127,8 +127,8 @@
 
                         console.log(error);
 
-                        user.value.nombres = 'juancitoPinto';
-                        user.value.username = '132483513481853413548351563113813183513841381381381';
+                        user.value.nombres = 'jorgeOcampo';
+                        user.value.username = 'jorgito';
                         localStorage.setItem('user', JSON.stringify(user.value));
                         listarUsuarios(); 
                     }
