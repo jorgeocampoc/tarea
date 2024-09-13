@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Title</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+
+    <!-- Bootstrap CSS v5.2.1 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous" />
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+
+    <div id="app" class="container my-5">
+
+        <div v-if="user.username == null" class="card login-card" >
+            <div class="card-body">
+                <h5 class="card-title">Formulario de registro / login</h5>
+                <input v-model="username" type="email" class="form-control m-2" placeholder="Email" >
+                <input v-model="password" type="password" class="form-control m-2" placeholder="Password" >
+                <button @click="registrarse()" class="btn btn-primary btn-sm m-2">Registrar</button>
+                <button @click="login()" class="btn btn-primary btn-sm m-2">Ingresar</button>
+            </div>
+        </div>
+
+        <div v-if="user.username != null" class="row">
+            <div class="col-md-12 text-center">
+                <h3>Conectado como: <b>{{ user.nombres }}</b></h3>
+            </div>
+            <div class="col-md-4 border-right">
+                <!-- listado de usuarios  -->
+                <ul class="list-group">
+                    <li v-for="item in usuarios" @click="seleccionarReceptor(item)" class="list-group-item d-flex gap-2">
+                        <img :src="'https://ui-avatars.com/api/?name=' + item.nombres + '&background=ffc107&color=fff'" 
+                            class="img-fluid rounded-3" alt="Img" width="40px">
+                        <span class="text-left">{{ item.nombres }} <br>
+                            <small class="text-xs">@{{ item.username }}</small>
+                        </span>
+                        <span>
+                            &nbsp;
+                        </span>
+                    </li>
+                </ul>
+            </div>
+            <div class="col-md-8">
+                <!-- los chats  -->
+                <div class="card" >
+                    <div class="card-body ">
+                        <h5 class="card-title text-center">Chat - {{ receptor.nombres }}</h5>
+
+                        <div class="card card-body overflow-auto" style="height: 500px;" id="chats">
+                            <div v-for="item in mensajes" class="row justify-content-center" >
+                                <div v-if="item.emisor_id != user.id" class="col-md-8">
+                                    <div class="alert alert-primary" role="alert">
+                                        {{ item.mensaje }}
+                                    </div>
+                                </div>
+    
+                                <div v-else class="col-md-8 text-end">
+                                    <div class="alert alert-success" role="alert">
+                                        {{ item.mensaje }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <textarea v-model="mensaje" class="form-control mt-3" placeholder="Mensaje..."></textarea>
+                        <div class="text-center mt-3">
+                            <button @click="enviar()" class="btn btn-primary btn-sm">Enviar</button>
+                            <audio id="audio" controls style="display: none;">
+                                <source type="audio/wav" src="tono.mp3">
+                            </audio>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+    <script>
+        // import { createClient } from '@supabase/supabase-js'
+        const { createClient } = supabase
+        const { createApp, ref } = Vue
+
+        createApp({
+            setup() {
+                const supabase = createClient('https://vmjkvqgvtjauoibbcexr.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZtamt2cWd2dGphdW9pYmJjZXhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjU5ODE3OTAsImV4cCI6MjA0MTU1Nzc5MH0.WL8TLQGqxCLGZLSP4mYRpdC_VGoyO8Z02EXo2Rxn02M')
+
+                const mostrar = ref('form');
+                const username = ref('jorge@gmail.com');
+                const password = ref('123456');
+                const user = ref({});
+                const usuarios = ref([]);
+                const receptor = ref({}); // con quien
+                const mensaje = ref('');
+                const mensajes = ref([]);
+
+                const suscripcion = ref(null);
+
+
+                const registrarse = async() => {
+                    const { data, error } = await supabase.auth.signUp({
+                        email: username.value,
+                        password: password.value
+                    });
+
+                    if (error) {
+                        console.log(error);
+                    } else {
+                        user.value = data.user;
+
+                        const { error } = await supabase.from('users').insert({
+                                                                nombres: 'JOSE MAMANI2',
+                                                                username: 'josemamani2',
+                                                                email: username.value,
+                                                                auth_id: user.value.id
+                                                            });
+
+                        console.log(error);
+
+                        user.value.nombres = 'JOSE MAMANI';
+                        user.value.username = 'josemamani';
+                        localStorage.setItem('user', JSON.stringify(user.value));
+                        listarUsuarios(); 
+                    }
+                }
+
+                const login = async() => {
+                    const { data, error } = await supabase.auth.signInWithPassword({
+                                                        email: username.value,
+                                                        password: password.value
+                                                    });
+                    if (error) {
+                        console.log(error);
+                    } else {
+                        user.value = data.user;
+
+                        const response = await supabase.from('users')
+                                                        .select()
+                                                        .eq('auth_id', user.value.id);
+                        if(response.error){
+                            console.log(error);
+                        } else {
+                            console.log(response.data);
+                            user.value.nombres = response.data[0].nombres;
+                            user.value.username = response.data[0].username;
+                            localStorage.setItem('user', JSON.stringify(user.value));
+                        }
+                        listarUsuarios();
+                    }
+                }
+
+                const listarUsuarios = async() => {
+                    const { data, error } = await supabase
+                                            .from('users')
+                                            .select();
+                    if(error){
+                        console.log(error);
+                    } else {
+                        console.log(data);
+                        usuarios.value = data;
+                    }
+                }
+
+                const seleccionarReceptor = async(objUsuario) => {
+                    receptor.value = objUsuario;
+
+                    cargarMensajes();
+
+                    // DE FORMA MANUAL, NO ES RECOMENDABLE
+                    // setInterval(() => {
+                    //     cargarMensajes();
+                    // }, 3000);
+
+                    // supabase.removeChannel(suscripcion.value);
+                    // supabase.removeAllChannels();
+                    // DE FORMA AUTOMATICA
+                    suscripcion.value = supabase.channel("mensajes")
+                                                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mensajes'}, payload => {
+                                                    if(payload.new.receptor_id == user.value.id && payload.new.emisor_id == receptor.value.auth_id){
+                                                        mensajes.value.push(payload.new);
+                                                        var audio = document.getElementById("audio");
+                                                        audio.play();
+                                                    }
+
+                                                    if(payload.new.emisor_id == user.value.id && payload.new.receptor_id == receptor.value.auth_id){
+                                                        mensajes.value.push(payload.new);
+                                                    }
+                                                })
+                                                .subscribe();
+                                                
+                    console.log(suscripcion.value);
+                }
+
+                const cargarMensajes = async() => {
+                    const { data, error } = await supabase
+                                            .from('mensajes')
+                                            .select()
+                                            .or(`and(emisor_id.eq.${user.value.id},receptor_id.eq.${receptor.value.auth_id}),and(emisor_id.eq.${receptor.value.auth_id},receptor_id.eq.${user.value.id})`)
+                                            .order('id', { ascending: false })
+                                            .limit(50);
+                    if(error){
+                        console.log(error);
+                    } else {
+                        console.log(data);
+                        mensajes.value = data.reverse();    
+                        var element = document.getElementById('chats');
+                        element.scrollTop = element.scrollHeight;
+                    }
+                }
+
+
+                const enviar = async() => {
+                    if(receptor.value.auth_id == null || receptor.value.auth_id == '' || mensaje.value == ''){
+                        alert('Por favor complete todos los campos');
+                        return;
+                    }
+                    const { error } = await supabase.from('mensajes').insert({
+                                                                mensaje: mensaje.value,
+                                                                emisor_id: user.value.id,
+                                                                receptor_id: receptor.value.auth_id,
+                                                            });
+
+                    console.log(error);
+                    mensaje.value = '';
+                    // cargarMensajes();
+                }
+
+                return {
+                    mostrar,
+                    username,
+                    password,
+                    user,
+                    registrarse,
+                    login,
+                    seleccionarReceptor,
+
+                    usuarios,
+                    receptor,
+                    mensaje,
+                    mensajes,
+                    enviar,
+                }
+            }
+        }).mount('#app')
+    </script>
+
+</body>
+
+</html>
