@@ -9,8 +9,8 @@ createApp({
                 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZtamt2cWd2dGphdW9pYmJjZXhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjU5ODE3OTAsImV4cCI6MjA0MTU1Nzc5MH0.WL8TLQGqxCLGZLSP4mYRpdC_VGoyO8Z02EXo2Rxn02M');
         
         const show = ref('SignUp');
-        const email = ref('jorge@gmail.com');
-        const password = ref('123456');
+        const email = ref('');
+        const password = ref('');
         const user = ref({});
         const users = ref([]);
         const receptor = ref({});
